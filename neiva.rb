@@ -58,6 +58,35 @@ class Neiva
 # @balance="100000.00", @date_of_creation="01.01.2020", @transactions=[]>, 
 #<Account:0x000055fd1f5374c0 @name="Счёт EUR", @currency="Евро", @balance="100000.00", @date_of_creation="01.01.2020", @transactions=[]>]
 
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# не забыть вставить get_trnsaction_ids в parse_accounts в блок сразу перед browser.back, что бы быстрее работало, а не в несколько кругов
+# так же изз-а browser.back может возникнуть ошибка. скорее всего, придется перенести
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  # def get_trnsaction_ids
+    browser.div(text: "Список операций").wait_until(&:present?).click
+# специально выбираю + 1 месяц, потому что на сайте месяца от 0 до 11 (value = 0 Январь ,  а в Date январь 1)
+    select_2_month_ago = Date.today.prev_month(3).mon
+    select_today_date  = Date.today.mday 
+    browser.div(class: "wrapper-input").wait_until(&:present?).click
+    field_before = browser.select_list class: "ui-datepicker-month"
+    field_before.select "#{select_2_month_ago}"
+    browser.td(text: "#{select_today_date}").click
+    browser.span(data_action: "get-transactions").wait_until(&:present?).click
+    sleep 10
+    transaction_ids = browser.table(class: "cp-tran-with-balance").map do |x|
+      x.attributes[:data_transaction_id]
+      end
+     transaction_ids.compact!
+puts transaction_ids
+browser.tr(class: ["cp-item", "cp-transaction"], data_transaction_id: "150618000019594094").wait_until(&:present?).click
+html =  browser.div(id: "divPopups").html
+transaction_information = Nokogiri::HTML.parse(html)
+puts transaction_information
+sleep 5
+
+ 
+
   end
 
   def parse_account(account_information, account_id)
@@ -88,3 +117,18 @@ class Neiva
 
 end
  Neiva.new.start
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
