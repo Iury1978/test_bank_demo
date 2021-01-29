@@ -8,13 +8,16 @@ class Neiva
   def initialize
     @browser = Watir::Browser.new :chrome
     @account_ids = []
+    @transaction_ids = []
     @array_text = []
   end
 
   def start
     goto_bank_page
-    @account_ids = get_account_ids  
+    @account_ids = get_account_ids
+    # @transaction_ids = get_transaction_ids
     parse_accounts
+    # get_transaction_ids
     # parse_account
   end
 
@@ -44,15 +47,24 @@ class Neiva
 
   def parse_accounts
     browser.element(css: '#lnkContracts').wait_until(&:present?).click
+    sleep 3
     @accounts = []
     @account_ids.map do |account_id|
       browser.tr(data_c_r_id: /#{account_id}/).wait_until(&:present?).click
+      sleep 3
       html =  browser.table(crid: /#{account_id}/).wait_until(&:present?).html
       account_information = Nokogiri::HTML.parse(html)
 # puts account_information
-       accounts << parse_account(account_information, account_id)  
+      accounts << parse_account(account_information, account_id) 
+      
+         get_transaction_ids
+         sleep 3
       browser.back
+sleep 5
+
     end
+  end
+    # puts accounts.to_s
 # проверил -puts accounts.to_s выдаст [#<Account:0x000055fd1f56aa78 @name="Счёт RUB", @currency="Российский рубль", @balance="1000000.00",
 # @date_of_creation="01.01.2020", @transactions=[]>, #<Account:0x000055fd1f432138 @name="Счёт USD", @currency="Доллар США",
 # @balance="100000.00", @date_of_creation="01.01.2020", @transactions=[]>, 
@@ -63,8 +75,27 @@ class Neiva
 # так же изз-а browser.back может возникнуть ошибка. скорее всего, придется перенести
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  # def get_trnsaction_ids
+  def get_transaction_ids
     browser.div(text: "Список операций").wait_until(&:present?).click
+    select_2_month_transaction
+    transaction_ids = browser.table(class: "cp-tran-with-balance").map do |tr_id|
+      tr_id.attributes[:data_transaction_id]
+      end
+      puts transaction_ids.compact!
+      puts "---------"
+    transaction_ids.compact!
+    browser.back
+  end
+
+
+# browser.tr(class: ["cp-item", "cp-transaction"], data_transaction_id: "150618000019594094").wait_until(&:present?).click
+# html =  browser.div(id: "divPopups").html
+# transaction_information = Nokogiri::HTML.parse(html)
+# puts transaction_information
+# sleep 5
+
+
+    def select_2_month_transaction
 # специально выбираю + 1 месяц, потому что на сайте месяца от 0 до 11 (value = 0 Январь ,  а в Date январь 1)
     select_2_month_ago = Date.today.prev_month(3).mon
     select_today_date  = Date.today.mday 
@@ -73,21 +104,10 @@ class Neiva
     field_before.select "#{select_2_month_ago}"
     browser.td(text: "#{select_today_date}").click
     browser.span(data_action: "get-transactions").wait_until(&:present?).click
-    sleep 10
-    transaction_ids = browser.table(class: "cp-tran-with-balance").map do |x|
-      x.attributes[:data_transaction_id]
-      end
-     transaction_ids.compact!
-puts transaction_ids
-browser.tr(class: ["cp-item", "cp-transaction"], data_transaction_id: "150618000019594094").wait_until(&:present?).click
-html =  browser.div(id: "divPopups").html
-transaction_information = Nokogiri::HTML.parse(html)
-puts transaction_information
-sleep 5
-
+  end
  
 
-  end
+  
 
   def parse_account(account_information, account_id)
     account_information.css("[class='tdFieldVal']").each do |text|        
