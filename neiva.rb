@@ -47,24 +47,23 @@ class Neiva
 
   def parse_accounts
     browser.element(css: '#lnkContracts').wait_until(&:present?).click
-    sleep 3
+    # sleep 3
     @accounts = []
     @account_ids.map do |account_id|
       browser.tr(data_c_r_id: /#{account_id}/).wait_until(&:present?).click
-      sleep 3
       html =  browser.table(crid: /#{account_id}/).wait_until(&:present?).html
       account_information = Nokogiri::HTML.parse(html)
-# puts account_information
+ # puts account_information
       accounts << parse_account(account_information, account_id) 
       
          get_transaction_ids
-         sleep 3
+         # sleep 3
       browser.back
-sleep 5
-
+ sleep 10
     end
+    # puts @accounts.to_s
   end
-    # puts accounts.to_s
+     
 # проверил -puts accounts.to_s выдаст [#<Account:0x000055fd1f56aa78 @name="Счёт RUB", @currency="Российский рубль", @balance="1000000.00",
 # @date_of_creation="01.01.2020", @transactions=[]>, #<Account:0x000055fd1f432138 @name="Счёт USD", @currency="Доллар США",
 # @balance="100000.00", @date_of_creation="01.01.2020", @transactions=[]>, 
@@ -86,20 +85,37 @@ sleep 5
     transaction_ids.compact!
     browser.back
   end
+  
+  # def parse_transactions
+  #   @accounts.each do |account|
+  #   browser.tr(class: ["cp-item", "cp-transaction"], data_transaction_id: "150618000019594094").wait_until(&:present?).click
+  #  html =  browser.div(id: "divPopups").html
+  #  transaction_information = Nokogiri::HTML.parse(html)
+  #  puts transaction_information
+  #  sleep 5 
 
 
-# browser.tr(class: ["cp-item", "cp-transaction"], data_transaction_id: "150618000019594094").wait_until(&:present?).click
-# html =  browser.div(id: "divPopups").html
-# transaction_information = Nokogiri::HTML.parse(html)
-# puts transaction_information
-# sleep 5
+
+  # end
+
+
 
 
     def select_2_month_transaction
 # специально выбираю + 1 месяц, потому что на сайте месяца от 0 до 11 (value = 0 Январь ,  а в Date январь 1)
+    select_today_year  = Date.today.year
     select_2_month_ago = Date.today.prev_month(3).mon
     select_today_date  = Date.today.mday 
+  
     browser.div(class: "wrapper-input").wait_until(&:present?).click
+    field_before_year = browser.select_list class: "ui-datepicker-year"
+
+      if Date.today.mon == 1 || Date.today.mon == 2
+      field_before_year.select "#{select_today_year - 1}"
+      else
+      field_before_year.select "#{select_today_year}"  
+      end
+
     field_before = browser.select_list class: "ui-datepicker-month"
     field_before.select "#{select_2_month_ago}"
     browser.td(text: "#{select_today_date}").click
