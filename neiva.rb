@@ -60,7 +60,7 @@ class Neiva
          get_transaction_ids
          sleep 3
       browser.back
-sleep 5
+sleep 10
 
     end
   end
