@@ -38,12 +38,9 @@ class Neiva
       account_information = Nokogiri::HTML.parse(html)
       @accounts << parse_account(account_information, account_id) 
       browser.back
-<<<<<<< HEAD
-      #  -----------------------------находимся в списке счетов--------------------------
-=======
-sleep 10
 
->>>>>>> 982fbe6aecf30691e7a7d1942f74cf81f1304981
+#  -----------------------------находимся в списке счетов--------------------------
+
     end
   end
  
