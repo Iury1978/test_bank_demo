@@ -10,5 +10,15 @@ attr_accessor :name, :currency, :balance, :date_of_creation , :id, :transactions
     @id = parameters[:id]
     @transactions = []
   end
+
+  def to_json(*a)
+  	{
+			name: @name,
+			currency: @currency,
+			balance: @balance,
+			date_of_creation: @date_of_creation,
+			transactions: @transactions
+  	}.to_json(*a)
+  end
   
 end
